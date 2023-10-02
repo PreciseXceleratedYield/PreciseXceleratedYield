@@ -1,0 +1,86 @@
+import pandas as pd
+from prettytable import PrettyTable
+from colorama import Fore, Style
+
+def convert_to_laks(value):
+    return f'{value/100000:.4f} Laks'
+
+def format_value(value):
+    if value == 'Profit & Loss':
+        return 'Profit & Loss'
+    return f'{value:.0f}' if isinstance(value, (int, float)) else value
+
+def colorize(value):
+    if isinstance(value, (int, float)):
+        if value < 0:
+            return f'{Fore.RED}{Style.BRIGHT}{format_value(value)}{Style.RESET_ALL}'
+        elif value > 0:
+            return f'{Fore.GREEN}{Style.BRIGHT}{format_value(value)}{Style.RESET_ALL}'
+        else:
+            return f'{Style.BRIGHT}{format_value(value)}{Style.RESET_ALL}'
+
+def get_holdingsinfo(csv_file_path):
+    try:
+        # Read data from the local CSV file
+        holdings_df = pd.read_csv(csv_file_path)
+
+        selected_columns = ['tradingsymbol','qty','close_price', 'average_price','ltp']
+        selected_holdings_df = holdings_df[selected_columns].copy()
+        selected_holdings_df['cap'] = (selected_holdings_df['qty'] * selected_holdings_df['average_price']).astype(int)
+        selected_holdings_df['unrealized'] = ((selected_holdings_df['ltp'] - selected_holdings_df['average_price']) * selected_holdings_df['qty']).round(2)
+        selected_holdings_df['perc'] = ((selected_holdings_df['unrealized'] / selected_holdings_df['cap']) * 100).where(selected_holdings_df['cap'] > 0)
+
+        total_Stocks_count = len(selected_holdings_df)
+
+        green_Stocks_df = selected_holdings_df[selected_holdings_df['perc'] > 0]
+        green_Stocks_count = len(green_Stocks_df)
+        green_Stocks_capital = green_Stocks_df['cap'].sum()
+        green_Stocks_worth = green_Stocks_df['ltp'].dot(green_Stocks_df['qty']).round(4)
+        green_Stocks_profit_loss = (green_Stocks_worth - green_Stocks_capital).round(4)
+
+        red_Stocks_df = selected_holdings_df[selected_holdings_df['perc'] < 0]
+        red_Stocks_count = len(red_Stocks_df)
+        red_Stocks_capital = red_Stocks_df['cap'].sum()
+        red_Stocks_worth = red_Stocks_df['ltp'].dot(red_Stocks_df['qty']).round(4)
+        red_Stocks_profit_loss = (red_Stocks_worth - red_Stocks_capital).round(4)
+
+        all_Stocks_capital = selected_holdings_df['cap'].sum()
+        all_Stocks_worth = selected_holdings_df['ltp'].dot(selected_holdings_df['qty']).round(4)
+        all_Stocks_profit_loss = (all_Stocks_worth - all_Stocks_capital).round(4)
+
+        day_change = all_Stocks_worth - selected_holdings_df['close_price'].dot(selected_holdings_df['qty']).round(4)
+        day_change_percentage = ((day_change / selected_holdings_df['close_price'].dot(selected_holdings_df['qty']).round(4)) * 100)
+
+        table = PrettyTable()
+        table.field_names = ['Laks Board', 'All', 'Green', 'Red','Summary']
+        table.add_row(['Stocks Count', total_Stocks_count, green_Stocks_count, red_Stocks_count, '------------'])
+        table.add_row(['Investment', convert_to_laks(all_Stocks_capital), convert_to_laks(green_Stocks_capital), convert_to_laks(red_Stocks_capital),  convert_to_laks(1850000)])
+        table.add_row(['Worth Now', convert_to_laks(all_Stocks_worth), convert_to_laks(green_Stocks_worth), convert_to_laks(red_Stocks_worth), convert_to_laks(all_Stocks_worth)])
+
+        if all_Stocks_profit_loss < 0:
+            table.add_row(['Profit & Loss', f'{Style.BRIGHT}{Fore.RED}{format_value(all_Stocks_profit_loss)}{Style.RESET_ALL}', colorize(green_Stocks_profit_loss), colorize(red_Stocks_profit_loss), colorize(all_Stocks_worth - 1850000)])
+        else:
+            table.add_row(['Profit & Loss', f'{format_value(all_Stocks_profit_loss)}', colorize(green_Stocks_profit_loss), colorize(red_Stocks_profit_loss),  colorize(all_Stocks_worth - 1850000)])
+
+        table.align = 'r'
+        print(table)
+
+        day_change_percentage_str = f'{day_change_percentage:.2f}%'
+        if day_change < 0:
+            day_change_str = f'{Style.BRIGHT}{Fore.RED}{day_change:.2f}{Style.RESET_ALL}'
+            day_change_percentage_str = f'{Style.BRIGHT}{Fore.RED}{day_change_percentage_str}{Style.RESET_ALL}'
+        elif day_change > 0:
+            day_change_str = f'{Style.BRIGHT}{Fore.GREEN}{day_change:.2f}{Style.RESET_ALL}'
+            day_change_percentage_str = f'{Style.BRIGHT}{Fore.GREEN}{day_change_percentage_str}{Style.RESET_ALL}'
+
+        print(f"Day Change: {day_change_str}                                     Day Change %: {day_change_percentage_str}")
+
+    
+
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+# Call the function with the path to your CSV file
+get_holdingsinfo('fileHPdf.csv')

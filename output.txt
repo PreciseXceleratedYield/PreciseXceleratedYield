@@ -1,0 +1,10 @@
+trying login BYPASS ..
+reading credentials from ../bypass.yaml
+../MM9168.txt modified today ... reading None
+enctoken to broker 2s7NrbJOgZGeOcxx+OUJB3gYNJSLXLJLiHLOkuLzp+g/m+BW8mgqvM5g61pD+3kP4gUQEkTka/+2Z31Sd22YG2/yOUxoOyH/NyrT04SH8zBuOHxN2jYaRw==
+trying login BYPASS ..
+reading credentials from ../bypass.yaml
+../MM9168.txt modified today ... reading None
+enctoken to broker 2s7NrbJOgZGeOcxx+OUJB3gYNJSLXLJLiHLOkuLzp+g/m+BW8mgqvM5g61pD+3kP4gUQEkTka/+2Z31Sd22YG2/yOUxoOyH/NyrT04SH8zBuOHxN2jYaRw==
+Available Cash: 9061.8
+[91mNo Funds Avalable [0m
