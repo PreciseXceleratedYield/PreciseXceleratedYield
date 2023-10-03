@@ -262,6 +262,47 @@ while True:
         # Print prnt_df_sorted without color
         print(only_prnt_df_sorted)
 
+        import pandas as pd
+
+        # Your real-time data
+        shoot_df = only_prnt_df_sorted.copy()  # Make a copy to avoid warnings on the original DataFrame
+
+        # Function to determine the action and reason
+        def determine_action_and_reason(row):
+            reasons_met = []
+
+            if row['source'] == 'holdings':
+                if (row['PnL%_H'] > row['Precise']) and (row['PnL%'] < row['Precise']):
+                    reasons_met.append("PnL%_H is higher than Precise, and PnL% is lower than Precise")
+                if (row['PnL%_H'] > row['Xlratd']) and (row['PnL%'] < row['Xlratd']):
+                    reasons_met.append("PnL%_H is higher than Xlratd, and PnL% is lower than Xlratd")
+                if row['PnL%'] > row['Yield']:
+                    reasons_met.append("PnL% is higher than Yield")
+
+            if row['source'] == 'positions' and (row['PnL%'] > row['Precise']):
+                reasons_met.append("PnL% is higher than Precise")
+
+            if reasons_met:
+                return "Shoot_", ", ".join(reasons_met)
+            else:
+                return "", ""
+
+        # Apply the function to create 'Action' and 'Reason' columns
+        shoot_df[['Action', 'Reason']] = shoot_df.apply(determine_action_and_reason, axis=1, result_type='expand')
+
+        # Set display options to prevent column truncation
+        pd.set_option('display.max_colwidth', None)
+
+        pd.options.display.max_colwidth = 53
+
+
+        # Filter rows where the "Action" is not empty
+        shoot_df = shoot_df[shoot_df['Action'] != ""]
+
+        # Display the filtered DataFrame with the "Action" and "Reason" columns
+        print(shoot_df[['key','Reason']])
+
+
         # Always print "Market view" in bright yellow
         print(f"{BRIGHT_YELLOW}My Trades Overview & Market Dynamics {RESET}")
 
